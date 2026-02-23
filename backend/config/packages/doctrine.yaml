@@ -23,6 +23,10 @@ doctrine:
         controller_resolver:
             auto_mapping: false
 
+        filters:
+            tenant:
+                class: App\Infrastructure\Doctrine\Filter\TenantFilter
+
 when@test:
     doctrine:
         dbal:
