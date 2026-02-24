@@ -2,30 +2,35 @@
 
 namespace App\Application\Offer;
 
-use App\Application\Offer\Port\OfferRepositoryInterface;
+use App\Application\Offer\Dto\OfferView;
 use App\Application\Tenant\TenantContext;
-use App\Entity\Offer;
-use Symfony\Component\Uid\Ulid;
+use App\Domain\Offer\Offer;
+use App\Domain\Offer\OfferTitle;
+use App\Domain\Tenant\TenantId as DomainTenantId;
 
 final class CreateOffer
 {
-    private OfferRepositoryInterface $offers;
-    private TenantContext $tenantContext;
-
-    public function __construct(OfferRepositoryInterface $offers, TenantContext $tenantContext)
-    {
-        $this->offers = $offers;
-        $this->tenantContext = $tenantContext;
+    public function __construct(
+        private readonly TenantContext $tenantContext,
+        private readonly OfferRepository $offers
+    ) {
     }
 
-    public function create(string $title): Offer
+    public function create(string $title): OfferView
     {
-        $tenantId = $this->tenantContext->getTenantId()->toRfc4122();
+        $tenantId = DomainTenantId::fromString((string) $this->tenantContext->getTenantId());
 
-        $offer = new Offer(new Ulid(), $tenantId, $title);
+        $offer = Offer::create(
+            $tenantId,
+            OfferTitle::fromString($title)
+        );
 
-        $this->offers->add($offer);
+        $this->offers->save($offer);
 
-        return $offer;
+        return new OfferView(
+            $offer->id()->toString(),
+            $offer->tenantId()->toString(),
+            $offer->title()->toString()
+        );
     }
 }

@@ -42,9 +42,9 @@ final class OfferController extends AbstractController
         $offer = $createOffer->create($dto->title);
 
         return $this->json([
-            'id' => (string) $offer->id(),
-            'tenantId' => $offer->tenantId(),
-            'title' => $offer->title(),
+            'id' => $offer->id,
+            'tenantId' => $offer->tenantId,
+            'title' => $offer->title,
         ], 201);
     }
 
@@ -54,9 +54,9 @@ final class OfferController extends AbstractController
         $items = [];
         foreach ($listOffers->list() as $offer) {
             $items[] = [
-                'id' => (string) $offer->id(),
-                'tenantId' => $offer->tenantId(),
-                'title' => $offer->title(),
+                'id' => $offer->id,
+                'tenantId' => $offer->tenantId,
+                'title' => $offer->title,
             ];
         }
 

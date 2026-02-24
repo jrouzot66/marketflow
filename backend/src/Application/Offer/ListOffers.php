@@ -2,23 +2,34 @@
 
 namespace App\Application\Offer;
 
-use App\Application\Offer\Port\OfferRepositoryInterface;
-use App\Entity\Offer;
+use App\Application\Offer\Dto\OfferView;
+use App\Application\Tenant\TenantContext;
+use App\Domain\Tenant\TenantId as DomainTenantId;
 
 final class ListOffers
 {
-    private OfferRepositoryInterface $offers;
-
-    public function __construct(OfferRepositoryInterface $offers)
-    {
-        $this->offers = $offers;
+    public function __construct(
+        private readonly TenantContext $tenantContext,
+        private readonly OfferRepository $offers
+    ) {
     }
 
     /**
-     * @return Offer[]
+     * @return list<OfferView>
      */
     public function list(): array
     {
-        return $this->offers->listAllOrderedByTitle();
+        $tenantId = DomainTenantId::fromString((string) $this->tenantContext->getTenantId());
+
+        $items = [];
+        foreach ($this->offers->listByTenant($tenantId) as $offer) {
+            $items[] = new OfferView(
+                $offer->id()->toString(),
+                $offer->tenantId()->toString(),
+                $offer->title()->toString()
+            );
+        }
+
+        return $items;
     }
 }

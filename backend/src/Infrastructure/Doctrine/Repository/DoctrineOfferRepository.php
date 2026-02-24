@@ -2,27 +2,58 @@
 
 namespace App\Infrastructure\Doctrine\Repository;
 
-use App\Application\Offer\Port\OfferRepositoryInterface;
-use App\Entity\Offer;
+use App\Application\Offer\OfferRepository;
+use App\Domain\Offer\Offer;
+use App\Domain\Offer\OfferId;
+use App\Domain\Offer\OfferTitle;
+use App\Domain\Tenant\TenantId;
+use App\Entity\Offer as OfferEntity;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Uid\Ulid;
 
-final class DoctrineOfferRepository implements OfferRepositoryInterface
+final class DoctrineOfferRepository implements OfferRepository
 {
-    private EntityManagerInterface $entityManager;
-
-    public function __construct(EntityManagerInterface $entityManager)
-    {
-        $this->entityManager = $entityManager;
+    public function __construct(
+        private readonly EntityManagerInterface $em
+    ) {
     }
 
-    public function add(Offer $offer): void
+    public function save(Offer $offer): void
     {
-        $this->entityManager->persist($offer);
-        $this->entityManager->flush();
+        $entity = new OfferEntity(
+            Ulid::fromString($offer->id()->toString()),
+            $offer->tenantId()->toRfc4122(),
+            $offer->title()->toString()
+        );
+
+        $this->em->persist($entity);
+        $this->em->flush();
     }
 
-    public function listAllOrderedByTitle(): array
+    public function listByTenant(TenantId $tenantId): array
     {
-        return $this->entityManager->getRepository(Offer::class)->findBy([], ['title' => 'ASC']);
+        $repo = $this->em->getRepository(OfferEntity::class);
+
+        /** @var list<OfferEntity> $entities */
+        $entities = $repo->findBy(
+            ['tenantId' => $tenantId->toRfc4122()],
+            ['id' => 'DESC']
+        );
+
+        $items = [];
+        foreach ($entities as $entity) {
+            $items[] = $this->toDomain($entity, $tenantId);
+        }
+
+        return $items;
+    }
+
+    private function toDomain(OfferEntity $entity, TenantId $tenantId): Offer
+    {
+        return Offer::rehydrate(
+            OfferId::fromString((string) $entity->id()),
+            $tenantId,
+            OfferTitle::fromString($entity->title())
+        );
     }
 }
