@@ -1,2 +1,33 @@
 framework:
-    workflows: null
+    workflows:
+        offer_publication:
+            type: 'state_machine'
+            supports:
+                - App\Entity\Offer
+            marking_store:
+                type: 'method'
+                property: 'status'
+            initial_marking: draft
+            places:
+                - draft
+                - review
+                - approved
+                - published
+                - rejected
+                - archived
+            transitions:
+                submit:
+                    from: draft
+                    to: review
+                approve:
+                    from: review
+                    to: approved
+                publish:
+                    from: approved
+                    to: published
+                reject:
+                    from: review
+                    to: rejected
+                archive:
+                    from: [draft, review, approved, published, rejected]
+                    to: archived

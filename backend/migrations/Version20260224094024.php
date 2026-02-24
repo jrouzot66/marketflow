@@ -11,11 +11,11 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20260223130400 extends AbstractMigration
+final class Version20260224094024 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return 'Create offers table (PostgreSQL): ULID id stored as UUID, tenant_id as RFC4122 string';
+        return 'Add status column to offers (PostgreSQL) with default draft';
     }
 
     public function up(Schema $schema): void
@@ -25,8 +25,7 @@ final class Version20260223130400 extends AbstractMigration
             'This migration is intended for PostgreSQL.'
         );
 
-        $this->addSql('CREATE TABLE offers (id UUID NOT NULL, tenant_id VARCHAR(36) NOT NULL, title VARCHAR(255) NOT NULL, PRIMARY KEY (id))');
-        $this->addSql('CREATE INDEX idx_offers_tenant ON offers (tenant_id)');
+        $this->addSql("ALTER TABLE offers ADD COLUMN status VARCHAR(32) NOT NULL DEFAULT 'draft'");
     }
 
     public function down(Schema $schema): void
@@ -36,6 +35,6 @@ final class Version20260223130400 extends AbstractMigration
             'This migration is intended for PostgreSQL.'
         );
 
-        $this->addSql('DROP TABLE offers');
+        $this->addSql('ALTER TABLE offers DROP COLUMN status');
     }
 }

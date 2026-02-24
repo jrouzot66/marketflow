@@ -3,6 +3,7 @@
 namespace App\Controller\Api;
 
 use App\Application\Offer\CreateOffer;
+use App\Application\Offer\GetOfferDetails;
 use App\Application\Offer\ListOffers;
 use App\Interface\Http\Api\Dto\CreateOfferRequest;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -61,5 +62,11 @@ final class OfferController extends AbstractController
         }
 
         return $this->json(['items' => $items]);
+    }
+
+    #[Route('/api/offers/{id}', name: 'api_offer_get', methods: ['GET'])]
+    public function get(string $id, GetOfferDetails $getOfferDetails): JsonResponse
+    {
+        return $this->json($getOfferDetails->get($id));
     }
 }
