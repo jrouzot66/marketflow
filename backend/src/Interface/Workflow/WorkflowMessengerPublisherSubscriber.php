@@ -3,6 +3,7 @@
 namespace App\Interface\Workflow;
 
 use App\Application\Messaging\Message\OfferTransitioned;
+use App\Application\Messaging\Message\SendOfferPublishedNotification;
 use App\Application\Tenant\TenantContext;
 use App\Entity\Offer;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -36,11 +37,23 @@ final class WorkflowMessengerPublisherSubscriber implements EventSubscriberInter
             return;
         }
 
+        $tenantId = (string) $this->tenantContext->getTenantId();
+
+        // Toujours dispatcher OfferTransitioned (audit, future indexation ES, etc.)
         $this->bus->dispatch(new OfferTransitioned(
-            tenantId: (string) $this->tenantContext->getTenantId(), // ULID
+            tenantId: $tenantId,
             offerId: (string) $subject->id(),
             transition: $transition->getName(),
             toStatus: $subject->status()
         ));
+
+        // Si l'offre passe en "published" → email async
+        if ($subject->status() === 'published') {
+            $this->bus->dispatch(new SendOfferPublishedNotification(
+                tenantId: $tenantId,
+                offerId: (string) $subject->id(),
+                offerTitle: $subject->title()
+            ));
+        }
     }
 }

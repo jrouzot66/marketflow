@@ -105,7 +105,7 @@ services:
     image: axllent/mailpit:latest
     container_name: marketflow_mailpit
     ports:
-      - "8025:8025"  # UI
+      - "8026:8025"  # UI
       - "1025:1025"  # SMTP
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://localhost:8025 >/dev/null 2>&1 || exit 1"]
