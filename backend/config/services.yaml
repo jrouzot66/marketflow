@@ -23,3 +23,58 @@ services:
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
     App\Application\Offer\Port\OfferRepositoryInterface: '@App\Infrastructure\Doctrine\Repository\DoctrineOfferRepository'
+
+    # Elasticsearch Client
+    Elastic\Elasticsearch\Client:
+        factory: [ 'App\Infrastructure\Search\ElasticsearchClientFactory', 'create' ]
+
+    # Infrastructure Search services
+    App\Infrastructure\Search\ElasticsearchClient:
+        arguments:
+            - '@Elastic\Elasticsearch\Client'
+            - '@logger'
+        public: false
+
+    App\Application\Offer\CreateOffer:
+        arguments:
+            - '@App\Application\Tenant\TenantContext'
+            - '@App\Application\Offer\Port\OfferRepositoryInterface'
+            - '@event_dispatcher'
+            - '@logger'
+        public: false
+
+    App\Infrastructure\Search\OfferIndexer:
+        arguments:
+            - '@App\Infrastructure\Search\ElasticsearchClient'
+            - '@logger'
+        public: false
+
+    App\Infrastructure\Search\SearchOfferRepository:
+        arguments:
+            - '@App\Infrastructure\Search\ElasticsearchClient'
+            - '@logger'
+        public: false
+
+    App\Application\Offer\SearchOffers:
+        arguments:
+            - '@App\Infrastructure\Search\SearchOfferRepository'
+            - '@App\Application\Tenant\TenantContext'
+        public: false
+
+    App\Infrastructure\Messenger\Handler\IndexOfferHandler:
+        tags:
+            - { name: 'messenger.message_handler' }
+        public: false
+
+    App\Infrastructure\Messenger\EventSubscriber\OfferEventSubscriber:
+        tags:
+            -   name: 'kernel.event_listener'
+                event: 'App\Domain\Offer\Event\OfferCreated'
+                method: 'onOfferCreated'
+                priority: 0
+        public: false
+
+    App\Interface\Http\Controller\OfferSearchController:
+        tags:
+            - { name: 'controller.service_arguments' }
+        public: false

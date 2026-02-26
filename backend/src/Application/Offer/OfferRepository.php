@@ -2,15 +2,15 @@
 
 namespace App\Application\Offer;
 
-use App\Domain\Offer\Offer;
+use App\Domain\Offer\OfferAggregate;
 use App\Domain\Tenant\TenantId;
 
 interface OfferRepository
 {
-    public function save(Offer $offer): void;
+    public function save(OfferAggregate $offer): void;
 
     /**
-     * @return list<Offer>
+     * @return list<OfferAggregate>
      */
     public function listByTenant(TenantId $tenantId): array;
 }

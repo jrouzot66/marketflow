@@ -15,7 +15,7 @@ framework:
         routing:
             'App\Application\Messaging\Message\OfferTransitioned': async
             'App\Application\Messaging\Message\SendOfferPublishedNotification': async
-
+            'App\Infrastructure\Messenger\Message\IndexOfferMessage': async
 # when@test:
 #    framework:
 #        messenger:

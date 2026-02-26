@@ -3,7 +3,7 @@
 namespace App\Infrastructure\Doctrine\Repository;
 
 use App\Application\Offer\OfferRepository;
-use App\Domain\Offer\Offer;
+use App\Domain\Offer\OfferAggregate;
 use App\Domain\Offer\OfferId;
 use App\Domain\Offer\OfferTitle;
 use App\Domain\Tenant\TenantId;
@@ -18,7 +18,7 @@ final class DoctrineOfferRepository implements OfferRepository
     ) {
     }
 
-    public function save(Offer $offer): void
+    public function save(OfferAggregate $offer): void
     {
         $entity = new OfferEntity(
             Ulid::fromString($offer->id()->toString()),
@@ -48,9 +48,9 @@ final class DoctrineOfferRepository implements OfferRepository
         return $items;
     }
 
-    private function toDomain(OfferEntity $entity, TenantId $tenantId): Offer
+    private function toDomain(OfferEntity $entity, TenantId $tenantId): OfferAggregate
     {
-        return Offer::rehydrate(
+        return OfferAggregate::rehydrate(
             OfferId::fromString((string) $entity->id()),
             $tenantId,
             OfferTitle::fromString($entity->title())

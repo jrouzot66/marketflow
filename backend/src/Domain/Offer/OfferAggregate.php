@@ -6,7 +6,7 @@ use App\Domain\Common\DomainEvent;
 use App\Domain\Offer\Event\OfferCreated;
 use App\Domain\Tenant\TenantId;
 
-final class Offer
+final class OfferAggregate
 {
     /** @var list<DomainEvent> */
     private array $events = [];
@@ -14,21 +14,22 @@ final class Offer
     private function __construct(
         private readonly OfferId $id,
         private readonly TenantId $tenantId,
-        private OfferTitle $title
+        private OfferTitle $title,
+        private Tags $tags
     ) {
     }
 
     public static function create(TenantId $tenantId, OfferTitle $title): self
     {
-        $offer = new self(OfferId::new(), $tenantId, $title);
-        $offer->record(new OfferCreated($offer->id, $tenantId));
+        $offer = new self(OfferId::new(), $tenantId, $title, Tags::empty());
+        $offer->record(new OfferCreated($offer->id, $offer->tenantId));
 
         return $offer;
     }
 
-    public static function rehydrate(OfferId $id, TenantId $tenantId, OfferTitle $title): self
+    public static function rehydrate(OfferId $id, TenantId $tenantId, OfferTitle $title, Tags $tags = null): self
     {
-        return new self($id, $tenantId, $title);
+        return new self($id, $tenantId, $title, $tags ?? Tags::empty());
     }
 
     public function id(): OfferId
@@ -44,6 +45,16 @@ final class Offer
     public function title(): OfferTitle
     {
         return $this->title;
+    }
+
+    public function tags(): Tags
+    {
+        return $this->tags;
+    }
+
+    public function setTags(Tags $tags): void
+    {
+        $this->tags = $tags;
     }
 
     /** @return list<DomainEvent> */

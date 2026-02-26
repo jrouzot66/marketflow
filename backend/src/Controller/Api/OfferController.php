@@ -5,6 +5,7 @@ namespace App\Controller\Api;
 use App\Application\Offer\CreateOffer;
 use App\Application\Offer\GetOfferDetails;
 use App\Application\Offer\ListOffers;
+use App\Application\Offer\SetOfferTags;
 use App\Interface\Http\Api\Dto\CreateOfferRequest;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -68,5 +69,19 @@ final class OfferController extends AbstractController
     public function get(string $id, GetOfferDetails $getOfferDetails): JsonResponse
     {
         return $this->json($getOfferDetails->get($id));
+    }
+
+    #[Route('/api/offers/{id}/tags', name: 'api_offer_set_tags', methods: ['POST'])]
+    public function setTags(string $id, Request $request, SetOfferTags $setOfferTags): JsonResponse
+    {
+        $payload = json_decode((string) $request->getContent(), true);
+
+        if (!is_array($payload) || !isset($payload['tags'])) {
+            return $this->json(['error' => 'Missing "tags" field'], 400);
+        }
+
+        $tags = $setOfferTags->setFromRawInput($id, (string) $payload['tags']);
+
+        return $this->json(['tags' => $tags]);
     }
 }
